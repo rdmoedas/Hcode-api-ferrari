@@ -1,4 +1,4 @@
-import {MigrationInterface, QueryRunner, Table} from "typeorm";
+import {MigrationInterface, QueryRunner, Table, TableForeignKey} from "typeorm";
 
 export class User1644798753224 implements MigrationInterface {
 
@@ -14,7 +14,7 @@ export class User1644798753224 implements MigrationInterface {
             }, {
                 name: 'name',
                 type: 'varchar',
-                length: '255',
+                length: '250',
                 isNullable: false
             }, {
                 name: 'birthAt',
@@ -40,12 +40,61 @@ export class User1644798753224 implements MigrationInterface {
                 default: 'CURRENT_TIMESTAMP',
             }]
 
-        }))
+        }));
+        
+        await queryRunner.createTable(new Table({
+            name: 'users',
+            columns: [{
+                name: 'id',
+                type: 'int',
+                isPrimary: true,
+                isGenerated: true,
+                generationStrategy: 'increment',
+            }, {
+                name: 'email',
+                type: 'varchar',
+                length: '250',
+                isNullable: false,
+                isUnique: true
+            }, {
+                name: 'password',
+                type: 'varchar',
+                length: '250',
+                isNullable: false
+            }, {
+                name: 'photo',
+                type: 'varchar',
+                length: '250',
+                isNullable: true
+            }, {
+                name: 'personId',
+                type: 'int',
+                isNullable: false,
+            }, {
+                name: 'createdAt',
+                type: 'timestamp',
+                default: 'CURRENT_TIMESTAMP',
+            }, {
+                name: 'updatedAt',
+                type: 'timestamp',
+                default: 'CURRENT_TIMESTAMP',
+            }]
+        }));
 
+        await queryRunner.createForeignKey('users', new TableForeignKey({
+            columnNames: ['personId'],
+            referencedColumnNames: ['id'],
+            referencedTableName: 'persons',
+            name: 'FK_users_persons',
+            onDelete: 'CASCADE',
+        }))
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable('persons')
+        // ! O down é na ordem inversa do up
+        await queryRunner.dropForeignKey('users', 'FK_users_persons');
+        await queryRunner.dropTable('users');
+        await queryRunner.dropTable('persons');
     }
 
 }

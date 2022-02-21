@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Migration {
+  id        Int    @id @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar(255)
+
+  @@map("migrations")
+}
+// changed model from persons to Person, to specify the table name we use @@maps to map the model to the table name
+model Person {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(250)
+  birthAt   DateTime? @db.Date
+  phone     String?   @db.VarChar(16)
+  document  String?   @db.VarChar(14)
+  createdAt DateTime  @default(now()) @db.Timestamp(0)
+  updatedAt DateTime  @default(now()) @db.Timestamp(0)
+  User     User[] // ao inves de utilizar users, para evitar problemas de pluralização utilizamos User para indicar que é um array de users
+
+  @@map("persons")
+}
+// changed model from users to User
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(250)
+  password  String   @db.VarChar(250)
+  photo     String?  @db.VarChar(250)
+  personId  Int
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @db.Timestamp(0)
+  person   Person  @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_users_persons")
+
+  @@index([personId], map: "FK_users_persons")
+  @@map("users")
+}
